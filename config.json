@@ -1,0 +1,67 @@
+{
+  "activationKey": "pause",
+  "actions": [
+    {
+      "key": "D",
+      "label": "今日の日付をコピー",
+      "type": "clipboard_date",
+      "params": {
+        "format": "YYYYMMDD"
+      }
+    },
+    {
+      "key": "O",
+      "label": "フォルダ作成",
+      "isGroup": true,
+      "children": [
+        {
+          "key": "B",
+          "label": "「バックアップ」作成",
+          "type": "create_folder",
+          "params": {
+            "folderName": "バックアップ"
+          }
+        },
+        {
+          "key": "T",
+          "label": "「テンプレート」作成",
+          "type": "create_folder",
+          "params": {
+            "folderName": "テンプレート"
+          }
+        },
+        {
+          "key": "O",
+          "label": "「オリジナル」作成",
+          "type": "create_folder",
+          "params": {
+            "folderName": "オリジナル"
+          }
+        }
+      ]
+    },
+    {
+      "key": "U",
+      "label": "URL",
+      "isGroup": true,
+      "children": [
+        {
+          "key": "G",
+          "label": "Google",
+          "type": "open_url",
+          "params": {
+            "url": "https://www.google.com"
+          }
+        },
+        {
+          "key": "M",
+          "label": "Gmail",
+          "type": "open_url",
+          "params": {
+            "url": "https://mail.google.com"
+          }
+        }
+      ]
+    }
+  ]
+}

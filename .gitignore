@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+build/
+dist/
+開発者用/
+オリジナル/
