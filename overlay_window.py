@@ -8,6 +8,8 @@ overlay_window.py - 呼び出し時オーバーレイ表示
 import tkinter as tk
 from tkinter import font as tkfont
 
+from app_info import APP_VERSION
+
 
 class OverlayWindow:
     """呼び出し時のオーバーレイウィンドウ"""
@@ -184,10 +186,16 @@ class OverlayWindow:
         footer_frame.pack(fill=tk.X)
 
         esc_text = "ESC  戻る" if self.current_group else "ESC  キャンセル"
+        footer_top = tk.Frame(footer_frame, bg=self.BG_COLOR)
+        footer_top.pack(fill=tk.X, padx=16)
         tk.Label(
-            footer_frame, text=esc_text, font=sub_font,
+            footer_top, text=esc_text, font=sub_font,
             fg="#6c7086", bg=self.BG_COLOR
-        ).pack(padx=16, anchor="w")
+        ).pack(side=tk.LEFT)
+        tk.Label(
+            footer_top, text=f"v{APP_VERSION}", font=sub_font,
+            fg="#6c7086", bg=self.BG_COLOR
+        ).pack(side=tk.RIGHT)
 
         if not self.current_group:
             action_row = tk.Frame(footer_frame, bg=self.BG_COLOR)

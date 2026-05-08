@@ -7,7 +7,11 @@ JSON設定ファイルの読み込み・保存・バリデーション。
 
 import json
 import os
+import shutil
 import sys
+from datetime import datetime
+
+
 def _get_config_dir():
     """設定ファイルを保存するディレクトリを取得する。
     EXE実行時はEXEと同じフォルダ、開発時はスクリプトと同じフォルダ。"""
@@ -130,6 +134,38 @@ class ConfigManager:
                 json.dump(config, f, ensure_ascii=False, indent=2)
         except IOError as e:
             print(f"設定ファイルの保存に失敗: {e}")
+
+    def get_config_dir(self):
+        """設定ファイルがあるフォルダを返す"""
+        return os.path.dirname(os.path.abspath(self.config_path))
+
+    def export_to_file(self, export_path):
+        """現在の設定ファイルを指定先へ書き出す"""
+        self.save()
+        shutil.copy2(self.config_path, export_path)
+
+    def import_from_file(self, import_path, create_backup=True):
+        """外部JSONを検証して現在の設定ファイルへ読み込む"""
+        with open(import_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        if not isinstance(data.get("actions"), list):
+            raise ValueError("actions が見つからないか、形式が正しくありません")
+
+        backup_path = None
+        if create_backup and os.path.exists(self.config_path):
+            backup_path = self._create_backup()
+
+        if os.path.abspath(import_path) != os.path.abspath(self.config_path):
+            shutil.copy2(import_path, self.config_path)
+        self.load()
+        return backup_path
+
+    def _create_backup(self):
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        base_name = f"config.backup.{timestamp}.json"
+        backup_path = os.path.join(self.get_config_dir(), base_name)
+        shutil.copy2(self.config_path, backup_path)
+        return backup_path
 
     def _create_default_config(self):
         """デフォルト設定を生成"""

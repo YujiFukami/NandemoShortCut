@@ -14,6 +14,8 @@ Windows で常駐し、ランチャーEXEやシステムトレイからショー
 解説ブログ:
 https://www.softex-celware.com/post/nandemo-shortcut-windows-launcher
 
+現在のバージョン: `v1.0.0`
+
 ## 主な機能
 
 - `NandemoShortcutLauncher.exe` またはトレイメニューからメイン画面を表示
@@ -53,6 +55,8 @@ https://www.softex-celware.com/post/nandemo-shortcut-windows-launcher
 本体の `NandemoShortcut.exe` は常駐用、`NandemoShortcutLauncher.exe` は呼び出し用として使う想定です。
 ランチャーをタスクバーに置いておくと、作業中の画面を切り替えずにショートカット一覧を開けます。
 
+タスクバーのアイコンが古い表示のままの場合は、いったんピン留めを解除して、最新の `NandemoShortcutLauncher.exe` を右クリックして再度ピン留めしてください。それでも変わらない場合は、ExplorerまたはPCを再起動してください。
+
 ## 初期ショートカット
 
 - `D`: 今日の日付を `YYYYMMDD` 形式でコピー
@@ -70,6 +74,10 @@ https://www.softex-celware.com/post/nandemo-shortcut-windows-launcher
 - アクションの追加、編集、削除とカテゴリの追加、編集、削除ができます
 - 設定内容は `config.json` に保存されます
 - 左側でカテゴリを選んだ状態でアクションを追加すると、追加画面のカテゴリ欄にそのカテゴリが最初から選択されます
+- `読み込み` から別の `config.json` を読み込めます。読み込み前に現在設定のバックアップを作成します
+- `書き出し` から現在の設定を任意の場所へ保存できます
+- `設定フォルダ` から現在使っている設定ファイルのフォルダを開けます
+- `使い方`、`開発元`、`GitHub` ボタンから関連ページを開けます
 
 ## 設定ファイル
 

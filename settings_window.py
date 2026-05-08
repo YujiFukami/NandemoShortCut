@@ -2,12 +2,15 @@
 settings_window.py - 設定画面UI
 """
 
+import os
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 from tkinter import font as tkfont
+import webbrowser
 
 from action_executor import ActionExecutor
 from app_icon import apply_window_icon
+from app_info import APP_VERSION, BLOG_URL, DEVELOPER_URL, GITHUB_URL
 
 
 class SettingsWindow:
@@ -69,6 +72,9 @@ class SettingsWindow:
         if self.on_config_changed:
             self.on_config_changed()
 
+    def _open_url(self, url):
+        webbrowser.open(url)
+
     def _build_ui(self):
         main_font = tkfont.Font(family="Segoe UI", size=10)
         title_font = tkfont.Font(family="Segoe UI", size=14, weight="bold")
@@ -88,6 +94,12 @@ class SettingsWindow:
             fg="#a6adc8",
             bg=self.BG_SECONDARY,
         ).pack(anchor="e")
+        link_row = tk.Frame(header_actions, bg=self.BG_SECONDARY)
+        link_row.pack(anchor="e", pady=(6, 0))
+        small_btn_font = tkfont.Font(family="Segoe UI", size=9, weight="bold")
+        self._make_button(link_row, "使い方", lambda: self._open_url(BLOG_URL), bg=self.BTN_BG, fg=self.TEXT_COLOR, font=small_btn_font).pack(side=tk.LEFT, padx=(0, 6))
+        self._make_button(link_row, "開発元", lambda: self._open_url(DEVELOPER_URL), bg=self.BTN_BG, fg=self.TEXT_COLOR, font=small_btn_font).pack(side=tk.LEFT, padx=(0, 6))
+        self._make_button(link_row, "GitHub", lambda: self._open_url(GITHUB_URL), bg=self.BTN_BG, fg=self.TEXT_COLOR, font=small_btn_font).pack(side=tk.LEFT)
 
         content = tk.Frame(self.window, bg=self.BG_COLOR)
         content.pack(fill=tk.BOTH, expand=True, padx=16, pady=12)
@@ -132,12 +144,16 @@ class SettingsWindow:
         self._make_button(btn_frame, "＋ 追加", self._on_add, bg=self.BTN_ADD, fg=self.BTN_ADD_FG, font=btn_font).pack(side=tk.LEFT, padx=(0, 8))
         self._make_button(btn_frame, "✏ 編集", self._on_edit, bg=self.BTN_BG, fg=self.TEXT_COLOR, font=btn_font).pack(side=tk.LEFT, padx=(0, 8))
         self._make_button(btn_frame, "🗑 削除", self._on_delete, bg=self.BTN_DEL, fg=self.BTN_DEL_FG, font=btn_font).pack(side=tk.LEFT)
+        self._make_button(btn_frame, "設定フォルダ", self._open_config_folder, bg=self.BTN_BG, fg=self.TEXT_COLOR, font=btn_font).pack(side=tk.RIGHT)
+        self._make_button(btn_frame, "書き出し", self._export_config, bg=self.BTN_BG, fg=self.TEXT_COLOR, font=btn_font).pack(side=tk.RIGHT, padx=(0, 8))
+        self._make_button(btn_frame, "読み込み", self._import_config, bg=self.BTN_BG, fg=self.TEXT_COLOR, font=btn_font).pack(side=tk.RIGHT, padx=(0, 8))
 
         status_frame = tk.Frame(self.window, bg=self.BG_SECONDARY, pady=6)
         status_frame.pack(fill=tk.X)
         tk.Label(status_frame, text="システムトレイのメニューからいつでもメイン画面を開けます。", font=main_font, fg="#a6adc8", bg=self.BG_SECONDARY).pack(side=tk.LEFT, padx=16)
+        tk.Label(status_frame, text=f"v{APP_VERSION}", font=main_font, fg="#a6adc8", bg=self.BG_SECONDARY).pack(side=tk.RIGHT, padx=(0, 16))
         self.status_label = tk.Label(status_frame, text="● 常駐中", font=main_font, fg=self.BTN_ADD, bg=self.BG_SECONDARY)
-        self.status_label.pack(side=tk.RIGHT, padx=16)
+        self.status_label.pack(side=tk.RIGHT, padx=(0, 10))
 
     def _refresh_list(self, selected_key=None):
         self.category_listbox.delete(0, tk.END)
@@ -270,6 +286,51 @@ class SettingsWindow:
         self.config.remove_action(target["child_key"], target["parent_key"])
         self._refresh_list()
         self._notify_config_changed()
+
+    def _import_config(self):
+        path = filedialog.askopenfilename(
+            parent=self.window,
+            title="設定ファイルを読み込み",
+            filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+        )
+        if not path:
+            return
+        if not messagebox.askyesno("設定読み込み", "現在の設定をバックアップして、選択した設定を読み込みますか？", parent=self.window):
+            return
+        try:
+            backup_path = self.config.import_from_file(path, create_backup=True)
+        except Exception as e:
+            messagebox.showerror("設定読み込み", f"読み込みに失敗しました。\n{e}", parent=self.window)
+            return
+        self._refresh_list()
+        self._notify_config_changed()
+        message = "設定を読み込みました。"
+        if backup_path:
+            message += f"\n\nバックアップ:\n{backup_path}"
+        messagebox.showinfo("設定読み込み", message, parent=self.window)
+
+    def _export_config(self):
+        path = filedialog.asksaveasfilename(
+            parent=self.window,
+            title="設定ファイルを書き出し",
+            defaultextension=".json",
+            initialfile="nandemo-shortcut-config.json",
+            filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+        )
+        if not path:
+            return
+        try:
+            self.config.export_to_file(path)
+        except Exception as e:
+            messagebox.showerror("設定書き出し", f"書き出しに失敗しました。\n{e}", parent=self.window)
+            return
+        messagebox.showinfo("設定書き出し", f"設定を書き出しました。\n{path}", parent=self.window)
+
+    def _open_config_folder(self):
+        try:
+            os.startfile(self.config.get_config_dir())
+        except OSError as e:
+            messagebox.showerror("設定フォルダ", f"設定フォルダを開けませんでした。\n{e}", parent=self.window)
 
     def _on_action_saved(self, selected_key=None):
         self._refresh_list(selected_key=selected_key)
