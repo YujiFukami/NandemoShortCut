@@ -6,10 +6,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 from tkinter import font as tkfont
 
-import keyboard
-
 from action_executor import ActionExecutor
-from startup_manager import is_startup_enabled, enable_startup, disable_startup
 
 
 class SettingsWindow:
@@ -31,12 +28,9 @@ class SettingsWindow:
         self.config = config_manager
         self.on_config_changed = on_config_changed
         self.window = None
-        self.activation_key_var = None
-        self.startup_status_var = None
 
     def show(self):
         if self.window and self.window.winfo_exists():
-            self._refresh_header_state()
             self.window.lift()
             self.window.focus_force()
             return
@@ -49,7 +43,6 @@ class SettingsWindow:
         self._setup_styles()
         self._build_ui()
         self._refresh_list()
-        self._refresh_header_state()
         self.window.update_idletasks()
         w = self.window.winfo_width()
         h = self.window.winfo_height()
@@ -70,14 +63,7 @@ class SettingsWindow:
         btn.bind("<Leave>", lambda e: btn.configure(bg=bg))
         return btn
 
-    def _refresh_header_state(self):
-        if self.activation_key_var is not None:
-            self.activation_key_var.set(self.config.activation_key)
-        if self.startup_status_var is not None:
-            self.startup_status_var.set("登録済み" if is_startup_enabled() else "未登録")
-
     def _notify_config_changed(self):
-        self._refresh_header_state()
         if self.on_config_changed:
             self.on_config_changed()
 
@@ -93,24 +79,13 @@ class SettingsWindow:
         header_actions = tk.Frame(header, bg=self.BG_SECONDARY)
         header_actions.pack(side=tk.RIGHT, padx=16)
 
-        hotkey_card = tk.Frame(header_actions, bg=self.BG_SECONDARY)
-        hotkey_card.pack(side=tk.LEFT, padx=(0, 16))
-        tk.Label(hotkey_card, text="呼び出しキー", font=main_font, fg="#a6adc8", bg=self.BG_SECONDARY).pack(anchor="e")
-        hotkey_row = tk.Frame(hotkey_card, bg=self.BG_SECONDARY)
-        hotkey_row.pack(anchor="e", pady=(4, 0))
-        self.activation_key_var = tk.StringVar()
-        tk.Label(hotkey_row, textvariable=self.activation_key_var, font=tkfont.Font(family="Consolas", size=11, weight="bold"), fg=self.ACCENT_COLOR, bg=self.BG_SECONDARY, width=20, anchor="e").pack(side=tk.LEFT, padx=(0, 8))
-        self._make_button(hotkey_row, "キー入力で変更", self._open_hotkey_dialog, bg=self.ACCENT_COLOR, fg="#1e1e2e", font=btn_font).pack(side=tk.LEFT)
-
-        startup_card = tk.Frame(header_actions, bg=self.BG_SECONDARY)
-        startup_card.pack(side=tk.LEFT)
-        tk.Label(startup_card, text="スタートアップ", font=main_font, fg="#a6adc8", bg=self.BG_SECONDARY).pack(anchor="e")
-        startup_row = tk.Frame(startup_card, bg=self.BG_SECONDARY)
-        startup_row.pack(anchor="e", pady=(4, 0))
-        self.startup_status_var = tk.StringVar()
-        tk.Label(startup_row, textvariable=self.startup_status_var, font=main_font, fg=self.TEXT_COLOR, bg=self.BG_SECONDARY, width=12, anchor="e").pack(side=tk.LEFT, padx=(0, 8))
-        self._make_button(startup_row, "登録", self._enable_startup, bg=self.BTN_ADD, fg=self.BTN_ADD_FG, font=btn_font).pack(side=tk.LEFT, padx=(0, 8))
-        self._make_button(startup_row, "解除", self._disable_startup, bg=self.BTN_BG, fg=self.TEXT_COLOR, font=btn_font).pack(side=tk.LEFT)
+        tk.Label(
+            header_actions,
+            text="アクションとカテゴリを編集できます",
+            font=main_font,
+            fg="#a6adc8",
+            bg=self.BG_SECONDARY,
+        ).pack(anchor="e")
 
         content = tk.Frame(self.window, bg=self.BG_COLOR)
         content.pack(fill=tk.BOTH, expand=True, padx=16, pady=12)
@@ -122,7 +97,14 @@ class SettingsWindow:
         self.category_listbox = tk.Listbox(left_frame, bg=self.BG_INPUT, fg=self.TEXT_COLOR, selectbackground=self.ACCENT_COLOR, selectforeground="#1e1e2e", font=main_font, borderwidth=0, highlightthickness=1, highlightcolor=self.BORDER_COLOR, relief="flat")
         self.category_listbox.pack(fill=tk.BOTH, expand=True)
         self.category_listbox.bind("<<ListboxSelect>>", self._on_category_select)
-        self._make_button(left_frame, "＋ カテゴリ追加", self._on_add_category, bg=self.ACCENT_COLOR, fg="#1e1e2e", font=tkfont.Font(family="Segoe UI", size=9, weight="bold")).pack(fill=tk.X, pady=(8, 0))
+        self.category_listbox.bind("<Double-1>", self._on_category_double_click)
+
+        category_btn_frame = tk.Frame(left_frame, bg=self.BG_COLOR, pady=8)
+        category_btn_frame.pack(fill=tk.X)
+        category_btn_font = tkfont.Font(family="Segoe UI", size=9, weight="bold")
+        self._make_button(category_btn_frame, "＋ 追加", self._on_add_category, bg=self.ACCENT_COLOR, fg="#1e1e2e", font=category_btn_font).pack(fill=tk.X, pady=(0, 6))
+        self._make_button(category_btn_frame, "✏ 編集", self._on_edit_category, bg=self.BTN_BG, fg=self.TEXT_COLOR, font=category_btn_font).pack(fill=tk.X, pady=(0, 6))
+        self._make_button(category_btn_frame, "🗑 削除", self._on_delete_category, bg=self.BTN_DEL, fg=self.BTN_DEL_FG, font=category_btn_font).pack(fill=tk.X)
 
         right_frame = tk.Frame(content, bg=self.BG_COLOR)
         right_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
@@ -151,18 +133,26 @@ class SettingsWindow:
 
         status_frame = tk.Frame(self.window, bg=self.BG_SECONDARY, pady=6)
         status_frame.pack(fill=tk.X)
-        tk.Label(status_frame, text="呼び出しキーはボタンを押して実際のキー入力で登録できます。", font=main_font, fg="#a6adc8", bg=self.BG_SECONDARY).pack(side=tk.LEFT, padx=16)
+        tk.Label(status_frame, text="システムトレイのメニューからいつでもメイン画面を開けます。", font=main_font, fg="#a6adc8", bg=self.BG_SECONDARY).pack(side=tk.LEFT, padx=16)
         self.status_label = tk.Label(status_frame, text="● 常駐中", font=main_font, fg=self.BTN_ADD, bg=self.BG_SECONDARY)
         self.status_label.pack(side=tk.RIGHT, padx=16)
 
-    def _refresh_list(self):
+    def _refresh_list(self, selected_key=None):
         self.category_listbox.delete(0, tk.END)
         self.category_listbox.insert(tk.END, "📋  すべて")
         for node in self.config.get_root_nodes():
             prefix = "📁" if node.is_group else "⚡"
             self.category_listbox.insert(tk.END, f"{prefix}  {node.label} ({node.key})")
-        self.category_listbox.selection_set(0)
-        self._refresh_tree()
+        selection_index = 0
+        if selected_key:
+            for index, node in enumerate(self.config.get_root_nodes(), start=1):
+                if node.key == selected_key.upper():
+                    selection_index = index
+                    break
+        self.category_listbox.selection_clear(0, tk.END)
+        self.category_listbox.selection_set(selection_index)
+        self.category_listbox.activate(selection_index)
+        self._apply_category_selection(selection_index)
 
     def _refresh_tree(self, filter_key=None):
         self.tree.delete(*self.tree.get_children())
@@ -176,7 +166,9 @@ class SettingsWindow:
         selection = self.category_listbox.curselection()
         if not selection:
             return
-        idx = selection[0]
+        self._apply_category_selection(selection[0])
+
+    def _apply_category_selection(self, idx):
         if idx == 0:
             self._refresh_tree()
             return
@@ -191,31 +183,49 @@ class SettingsWindow:
         type_names = ActionExecutor.get_action_types()
         self.tree.insert("", tk.END, values=(node.key, node.label, type_names.get(node.action_type, node.action_type)))
 
-    def _open_hotkey_dialog(self):
-        HotkeyCaptureDialog(self.window, self.config.activation_key, self._apply_hotkey)
-
-    def _apply_hotkey(self, hotkey):
-        if hotkey == self.config.activation_key:
-            return
-        self.config.update_activation_key(hotkey)
-        self._notify_config_changed()
-
-    def _enable_startup(self):
-        try:
-            path = enable_startup()
-        except OSError as e:
-            messagebox.showerror("スタートアップ登録", str(e), parent=self.window)
-            return
-        self._refresh_header_state()
-        messagebox.showinfo("スタートアップ登録", f"登録しました:\n{path}", parent=self.window)
-
-    def _disable_startup(self):
-        path = disable_startup()
-        self._refresh_header_state()
-        messagebox.showinfo("スタートアップ登録", f"解除しました:\n{path}", parent=self.window)
-
     def _on_add_category(self):
         CategoryDialog(self.window, self.config, on_save=self._on_action_saved)
+
+    def _on_category_double_click(self, event):
+        self._on_edit_category()
+
+    def _get_selected_category_node(self):
+        selection = self.category_listbox.curselection()
+        if not selection:
+            return None
+        idx = selection[0]
+        if idx == 0:
+            return None
+        nodes = self.config.get_root_nodes()
+        if idx - 1 >= len(nodes):
+            return None
+        node = nodes[idx - 1]
+        return node if node.is_group else None
+
+    def _on_edit_category(self):
+        node = self._get_selected_category_node()
+        if not node:
+            messagebox.showinfo("選択", "編集するカテゴリを選択してください", parent=self.window)
+            return
+        CategoryDialog(self.window, self.config, edit_data={"key": node.key, "label": node.label}, on_save=lambda: self._on_category_saved(node.key))
+
+    def _on_delete_category(self):
+        node = self._get_selected_category_node()
+        if not node:
+            messagebox.showinfo("選択", "削除するカテゴリを選択してください", parent=self.window)
+            return
+        message = f"カテゴリ「{node.label}」({node.key}) を削除しますか？"
+        if node.children:
+            message += "\n\nこのカテゴリ内のアクションも一緒に削除されます。"
+        if not messagebox.askyesno("確認", message, parent=self.window):
+            return
+        try:
+            self.config.remove_group(node.key)
+        except ValueError as e:
+            messagebox.showwarning("入力エラー", str(e), parent=self.window)
+            return
+        self._refresh_list()
+        self._notify_config_changed()
 
     def _on_double_click(self, event):
         if self.tree.selection():
@@ -254,6 +264,10 @@ class SettingsWindow:
 
     def _on_action_saved(self):
         self._refresh_list()
+        self._notify_config_changed()
+
+    def _on_category_saved(self, key=None):
+        self._refresh_list(selected_key=key)
         self._notify_config_changed()
 
 
@@ -408,11 +422,12 @@ class CategoryDialog:
     BTN_SAVE = "#a6e3a1"
     BTN_CANCEL = "#45475a"
 
-    def __init__(self, parent, config_manager, on_save=None):
+    def __init__(self, parent, config_manager, edit_data=None, on_save=None):
         self.config = config_manager
+        self.edit_data = edit_data
         self.on_save = on_save
         self.dialog = tk.Toplevel(parent)
-        self.dialog.title("カテゴリ追加")
+        self.dialog.title("カテゴリ追加" if not edit_data else "カテゴリ編集")
         self.dialog.geometry("360x220")
         self.dialog.configure(bg=self.BG_COLOR)
         self.dialog.transient(parent)
@@ -432,9 +447,13 @@ class CategoryDialog:
         tk.Label(main, text="キー（1文字）:", font=label_font, fg=self.TEXT_COLOR, bg=self.BG_COLOR).pack(anchor="w", pady=(0, 4))
         self.key_entry = tk.Entry(main, bg=self.BG_INPUT, fg=self.TEXT_COLOR, font=tkfont.Font(family="Consolas", size=14, weight="bold"), insertbackground=self.TEXT_COLOR, borderwidth=0, highlightthickness=1, highlightcolor=self.ACCENT_COLOR)
         self.key_entry.pack(fill=tk.X, pady=(0, 12), ipady=4)
+        if self.edit_data:
+            self.key_entry.insert(0, self.edit_data.get("key", ""))
         tk.Label(main, text="カテゴリ名:", font=label_font, fg=self.TEXT_COLOR, bg=self.BG_COLOR).pack(anchor="w", pady=(0, 4))
         self.label_entry = tk.Entry(main, bg=self.BG_INPUT, fg=self.TEXT_COLOR, font=font, insertbackground=self.TEXT_COLOR, borderwidth=0, highlightthickness=1, highlightcolor=self.ACCENT_COLOR)
         self.label_entry.pack(fill=tk.X, pady=(0, 12), ipady=4)
+        if self.edit_data:
+            self.label_entry.insert(0, self.edit_data.get("label", ""))
         btn_frame = tk.Frame(main, bg=self.BG_COLOR, pady=8)
         btn_frame.pack(fill=tk.X)
         btn_font = tkfont.Font(family="Segoe UI", size=10, weight="bold")
@@ -443,133 +462,15 @@ class CategoryDialog:
 
     def _on_save(self):
         try:
-            self.config.add_group(self.key_entry.get().strip().upper(), self.label_entry.get().strip())
+            key = self.key_entry.get().strip().upper()
+            label = self.label_entry.get().strip()
+            if self.edit_data:
+                self.config.update_group(self.edit_data["key"], key, label)
+            else:
+                self.config.add_group(key, label)
         except ValueError as e:
             messagebox.showwarning("入力エラー", str(e), parent=self.dialog)
             return
         self.dialog.destroy()
         if self.on_save:
             self.on_save()
-
-
-class HotkeyCaptureDialog:
-    BG_COLOR = "#1e1e2e"
-    BG_SECONDARY = "#2d2d44"
-    TEXT_COLOR = "#cdd6f4"
-    ACCENT_COLOR = "#89b4fa"
-    BTN_SAVE = "#a6e3a1"
-    BTN_CANCEL = "#45475a"
-    MODIFIERS = {"ctrl", "shift", "alt", "windows"}
-    MODIFIER_LABELS = {"ctrl": "Ctrl", "shift": "Shift", "alt": "Alt", "windows": "Win"}
-
-    def __init__(self, parent, initial_hotkey, on_save):
-        self.on_save = on_save
-        self.captured_hotkey = initial_hotkey
-        self.modifiers = set()
-        self.main_key = None
-        self.dialog = tk.Toplevel(parent)
-        self.dialog.title("呼び出しキー設定")
-        self.dialog.geometry("440x250")
-        self.dialog.configure(bg=self.BG_COLOR)
-        self.dialog.transient(parent)
-        self.dialog.grab_set()
-        self.dialog.resizable(False, False)
-        self.display_var = tk.StringVar(value=initial_hotkey)
-        self.hint_var = tk.StringVar(value="入力欄を選択した状態で、設定したいキーの組み合わせを押してください")
-        self._build_ui()
-        self.capture_area.focus_force()
-        self.dialog.update_idletasks()
-        x = parent.winfo_x() + (parent.winfo_width() - 440) // 2
-        y = parent.winfo_y() + (parent.winfo_height() - 250) // 2
-        self.dialog.geometry(f"+{x}+{y}")
-
-    def _build_ui(self):
-        main = tk.Frame(self.dialog, bg=self.BG_COLOR, padx=24, pady=18)
-        main.pack(fill=tk.BOTH, expand=True)
-        tk.Label(main, text="呼び出しキーを記録", font=tkfont.Font(family="Segoe UI", size=14, weight="bold"), fg=self.TEXT_COLOR, bg=self.BG_COLOR).pack(anchor="w")
-        tk.Label(main, textvariable=self.hint_var, font=tkfont.Font(family="Segoe UI", size=10), fg="#a6adc8", bg=self.BG_COLOR, wraplength=380, justify="left").pack(anchor="w", pady=(6, 12))
-        self.capture_area = tk.Entry(main, textvariable=self.display_var, justify="center", bg=self.BG_SECONDARY, fg=self.ACCENT_COLOR, font=tkfont.Font(family="Consolas", size=16, weight="bold"), insertbackground=self.TEXT_COLOR, relief="flat", highlightthickness=2, highlightcolor=self.ACCENT_COLOR, highlightbackground=self.BG_SECONDARY)
-        self.capture_area.pack(fill=tk.X, ipady=12)
-        self.capture_area.bind("<KeyPress>", self._on_key_press)
-        self.capture_area.bind("<KeyRelease>", self._on_key_release)
-        helper = tk.Frame(main, bg=self.BG_COLOR)
-        helper.pack(fill=tk.X, pady=(10, 0))
-        tk.Label(helper, text="Esc でキャンセル / Backspace でクリア", font=tkfont.Font(family="Segoe UI", size=10), fg="#6c7086", bg=self.BG_COLOR).pack(side=tk.LEFT)
-        tk.Button(helper, text="クリア", command=self._clear_capture, bg=self.BTN_CANCEL, fg=self.TEXT_COLOR, relief="flat", padx=14, cursor="hand2").pack(side=tk.RIGHT)
-        btn_frame = tk.Frame(main, bg=self.BG_COLOR, pady=18)
-        btn_frame.pack(fill=tk.X, side=tk.BOTTOM)
-        btn_font = tkfont.Font(family="Segoe UI", size=10, weight="bold")
-        tk.Button(btn_frame, text="保存", command=self._save, bg=self.BTN_SAVE, fg="#1e1e2e", font=btn_font, relief="flat", padx=20, pady=4, cursor="hand2").pack(side=tk.RIGHT, padx=(8, 0))
-        tk.Button(btn_frame, text="キャンセル", command=self.dialog.destroy, bg=self.BTN_CANCEL, fg=self.TEXT_COLOR, font=btn_font, relief="flat", padx=20, pady=4, cursor="hand2").pack(side=tk.RIGHT)
-
-    def _on_key_press(self, event):
-        if event.keysym == "Escape":
-            self.dialog.destroy()
-            return "break"
-        if event.keysym == "BackSpace":
-            self._clear_capture()
-            return "break"
-        key_name = self._normalize_key(event.keysym)
-        if not key_name:
-            return "break"
-        if key_name in self.MODIFIERS:
-            self.modifiers.add(key_name)
-            self.main_key = None
-            self._update_display()
-            return "break"
-        self.main_key = key_name
-        self._update_display()
-        return "break"
-
-    def _on_key_release(self, event):
-        key_name = self._normalize_key(event.keysym)
-        if key_name in self.MODIFIERS and self.main_key:
-            self.modifiers.add(key_name)
-        return "break"
-
-    def _clear_capture(self):
-        self.modifiers.clear()
-        self.main_key = None
-        self.captured_hotkey = ""
-        self.display_var.set("")
-        self.hint_var.set("入力欄を選択した状態で、設定したいキーの組み合わせを押してください")
-        self.capture_area.focus_force()
-
-    def _update_display(self):
-        ordered = [name for name in ("ctrl", "shift", "alt", "windows") if name in self.modifiers]
-        self.captured_hotkey = "+".join(ordered + ([self.main_key] if self.main_key else []))
-        display = [self.MODIFIER_LABELS[name] for name in ordered]
-        if self.main_key:
-            display.append(self._format_main_key(self.main_key))
-            self.hint_var.set("このキーの組み合わせで保存できます")
-        else:
-            self.hint_var.set("修飾キーだけでは保存できません。最後に通常キーを押してください")
-        self.display_var.set(" + ".join(display))
-
-    def _save(self):
-        if not self.captured_hotkey:
-            messagebox.showwarning("入力エラー", "呼び出しキーを入力してください", parent=self.dialog)
-            return
-        try:
-            keyboard.parse_hotkey(self.captured_hotkey)
-        except Exception:
-            messagebox.showwarning("入力エラー", "このキーの組み合わせは使用できません", parent=self.dialog)
-            return
-        self.on_save(self.captured_hotkey)
-        self.dialog.destroy()
-
-    @staticmethod
-    def _normalize_key(keysym):
-        key = (keysym or "").lower()
-        aliases = {"control_l": "ctrl", "control_r": "ctrl", "shift_l": "shift", "shift_r": "shift", "alt_l": "alt", "alt_r": "alt", "super_l": "windows", "super_r": "windows", "win_l": "windows", "win_r": "windows", "prior": "page up", "next": "page down", "return": "enter"}
-        if key in aliases:
-            return aliases[key]
-        if key.startswith("f") and key[1:].isdigit():
-            return key
-        return key if key else None
-
-    @staticmethod
-    def _format_main_key(key_name):
-        if len(key_name) == 1:
-            return key_name.upper()
-        return {"space": "Space", "enter": "Enter", "tab": "Tab", "page up": "PageUp", "page down": "PageDown", "pause": "Pause"}.get(key_name, key_name.title())

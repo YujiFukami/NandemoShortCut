@@ -11,6 +11,7 @@ import subprocess
 import pyperclip
 
 from explorer_utils import get_active_explorer_path, create_folder_in_path
+from file_clipboard import copy_files_to_clipboard
 
 
 class ActionExecutor:
@@ -22,6 +23,7 @@ class ActionExecutor:
             "create_folder": self._exec_create_folder,
             "clipboard_date": self._exec_clipboard_date,
             "clipboard_text": self._exec_clipboard_text,
+            "clipboard_file": self._exec_clipboard_file,
             "open_url": self._exec_open_url,
             "open_path": self._exec_open_path,
             "run_command": self._exec_run_command,
@@ -85,6 +87,21 @@ class ActionExecutor:
         pyperclip.copy(text)
         return True, f"テキストをコピーしました: {text[:30]}..."
 
+    def _exec_clipboard_file(self, params):
+        """ファイルをクリップボードにコピー"""
+        target_path = params.get("path", "")
+        if not target_path:
+            return False, "コピーするファイルが指定されていません"
+
+        target_path = os.path.abspath(os.path.expandvars(os.path.expanduser(target_path)))
+        if not os.path.exists(target_path):
+            return False, f"ファイルが見つかりません: {target_path}"
+        if not os.path.isfile(target_path):
+            return False, f"ファイルではありません: {target_path}"
+
+        copy_files_to_clipboard([target_path])
+        return True, f"ファイルをコピー待機にしました: {os.path.basename(target_path)}"
+
     def _exec_open_url(self, params):
         """URLをブラウザで開く"""
         url = params.get("url", "")
@@ -145,6 +162,7 @@ class ActionExecutor:
             "create_folder": "フォルダ作成",
             "clipboard_date": "日付コピー",
             "clipboard_text": "テキストコピー",
+            "clipboard_file": "ファイルコピー",
             "open_url": "URLを開く",
             "open_path": "ファイルを開く",
             "run_command": "コマンド実行",
@@ -163,6 +181,9 @@ class ActionExecutor:
             ],
             "clipboard_text": [
                 {"name": "text", "label": "コピーするテキスト", "type": "text"},
+            ],
+            "clipboard_file": [
+                {"name": "path", "label": "コピーするファイル", "type": "file"},
             ],
             "open_url": [
                 {"name": "url", "label": "URL", "type": "text"},

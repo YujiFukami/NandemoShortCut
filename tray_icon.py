@@ -14,12 +14,14 @@ from pystray import MenuItem, Menu
 class TrayIcon:
     """システムトレイアイコン"""
 
-    def __init__(self, on_settings=None, on_quit=None):
+    def __init__(self, on_open_main=None, on_settings=None, on_quit=None):
         """
         Args:
+            on_open_main: メイン画面を開くコールバック
             on_settings: 設定画面を開くコールバック
             on_quit: 終了時のコールバック
         """
+        self.on_open_main = on_open_main
         self.on_settings = on_settings
         self.on_quit = on_quit
         self.icon = None
@@ -30,6 +32,7 @@ class TrayIcon:
         icon_image = self._create_icon_image()
 
         menu = Menu(
+            MenuItem("メイン画面を開く", self._on_open_main_click, default=True),
             MenuItem("設定を開く", self._on_settings_click),
             Menu.SEPARATOR,
             MenuItem("終了", self._on_quit_click),
@@ -83,6 +86,11 @@ class TrayIcon:
         """設定メニュークリック"""
         if self.on_settings:
             self.on_settings()
+
+    def _on_open_main_click(self, icon=None, item=None):
+        """メイン画面を開く"""
+        if self.on_open_main:
+            self.on_open_main()
 
     def _on_quit_click(self, icon=None, item=None):
         """終了メニュークリック"""

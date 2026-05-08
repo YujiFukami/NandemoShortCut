@@ -1,8 +1,44 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 
-a = Analysis(
+main_analysis = Analysis(
     ['main.py'],
+    pathex=[],
+    binaries=[],
+    datas=[],
+    hiddenimports=['comtypes', 'comtypes.client'],
+    hookspath=[],
+    hooksconfig={},
+    runtime_hooks=[],
+    excludes=[],
+    noarchive=False,
+    optimize=0,
+)
+main_pyz = PYZ(main_analysis.pure)
+
+main_exe = EXE(
+    main_pyz,
+    main_analysis.scripts,
+    main_analysis.binaries,
+    main_analysis.datas,
+    [],
+    name='NandemoShortcut',
+    debug=False,
+    bootloader_ignore_signals=False,
+    strip=False,
+    upx=True,
+    upx_exclude=[],
+    runtime_tmpdir=None,
+    console=False,
+    disable_windowed_traceback=False,
+    argv_emulation=False,
+    target_arch=None,
+    codesign_identity=None,
+    entitlements_file=None,
+)
+
+launcher_analysis = Analysis(
+    ['launcher.py'],
     pathex=[],
     binaries=[],
     datas=[],
@@ -14,15 +50,15 @@ a = Analysis(
     noarchive=False,
     optimize=0,
 )
-pyz = PYZ(a.pure)
+launcher_pyz = PYZ(launcher_analysis.pure)
 
-exe = EXE(
-    pyz,
-    a.scripts,
-    a.binaries,
-    a.datas,
+launcher_exe = EXE(
+    launcher_pyz,
+    launcher_analysis.scripts,
+    launcher_analysis.binaries,
+    launcher_analysis.datas,
     [],
-    name='NandemoShortcut',
+    name='NandemoShortcutLauncher',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

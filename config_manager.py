@@ -71,7 +71,6 @@ class ConfigManager:
 
     def __init__(self, config_path=None):
         self.config_path = config_path or DEFAULT_CONFIG_PATH
-        self.activation_key = "pause"
         self.root_actions = {}  # key(大文字) -> ActionNode
         self._raw_config = {}
         self.load()
@@ -90,7 +89,6 @@ class ConfigManager:
             self._create_default_config()
             return
 
-        self.activation_key = self._raw_config.get("activationKey", "pause")
         self._build_tree(self._raw_config.get("actions", []))
 
     def _build_tree(self, actions_list):
@@ -125,7 +123,6 @@ class ConfigManager:
     def save(self):
         """設定をJSONファイルに保存"""
         config = {
-            "activationKey": self.activation_key,
             "actions": [node.to_dict() for node in self.root_actions.values()],
         }
         try:
@@ -136,7 +133,6 @@ class ConfigManager:
 
     def _create_default_config(self):
         """デフォルト設定を生成"""
-        self.activation_key = "pause"
         self.root_actions = {}
 
     def get_root_nodes(self):
@@ -171,6 +167,36 @@ class ConfigManager:
 
         group = ActionNode(key=key, label=label, is_group=True)
         self.root_actions[normalized_key] = group
+        self.save()
+
+    def update_group(self, old_key, new_key, label):
+        """既存カテゴリを更新"""
+        self._validate_single_key(new_key)
+        self._validate_label(label)
+
+        old_normalized_key = old_key.upper()
+        node = self.root_actions.get(old_normalized_key)
+        if not node or not node.is_group:
+            raise ValueError("編集対象のカテゴリが見つかりません")
+
+        new_normalized_key = new_key.upper()
+        if old_normalized_key != new_normalized_key and new_normalized_key in self.root_actions:
+            raise ValueError(f"キー '{new_normalized_key}' は既に使用されています")
+
+        del self.root_actions[old_normalized_key]
+        node.key = new_normalized_key
+        node.label = label
+        self.root_actions[new_normalized_key] = node
+        self.save()
+
+    def remove_group(self, key):
+        """カテゴリを削除"""
+        normalized_key = (key or "").strip().upper()
+        node = self.root_actions.get(normalized_key)
+        if not node or not node.is_group:
+            raise ValueError("削除対象のカテゴリが見つかりません")
+
+        del self.root_actions[normalized_key]
         self.save()
 
     def remove_action(self, key, parent_key=None):
@@ -209,11 +235,6 @@ class ConfigManager:
             action_type=action_type,
             params=params,
         )
-        self.save()
-
-    def update_activation_key(self, new_key):
-        """呼び出しキーを変更"""
-        self.activation_key = new_key
         self.save()
 
     def get_all_actions_flat(self):
