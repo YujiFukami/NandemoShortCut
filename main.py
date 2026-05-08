@@ -10,6 +10,7 @@ import tkinter as tk
 # モジュールのインポート
 from config_manager import ConfigManager
 from action_executor import ActionExecutor
+from app_icon import apply_window_icon
 from launch_protocol import MainWindowSignal, SingleInstanceGuard
 from overlay_window import OverlayWindow
 from settings_window import SettingsWindow
@@ -23,6 +24,7 @@ class NandemoShortcutApp:
         self.root = tk.Tk()
         self.root.withdraw()  # メインウィンドウを隠す
         self.root.title("なんでもショートカット")
+        apply_window_icon(self.root)
         self.show_main_on_start = show_main_on_start
         self.show_main_signal = MainWindowSignal()
         self.show_main_signal.create()

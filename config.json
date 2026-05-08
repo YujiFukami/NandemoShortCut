@@ -59,6 +59,14 @@
           "params": {
             "url": "https://mail.google.com"
           }
+        },
+        {
+          "key": "B",
+          "label": "使い方ブログ",
+          "type": "open_url",
+          "params": {
+            "url": "https://www.softex-celware.com/post/nandemo-shortcut-windows-launcher"
+          }
         }
       ]
     }

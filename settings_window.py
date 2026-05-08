@@ -7,6 +7,7 @@ from tkinter import ttk, messagebox, filedialog
 from tkinter import font as tkfont
 
 from action_executor import ActionExecutor
+from app_icon import apply_window_icon
 
 
 class SettingsWindow:
@@ -39,6 +40,7 @@ class SettingsWindow:
         self.window.title("なんでもショートカット - 設定")
         self.window.geometry("760x560")
         self.window.configure(bg=self.BG_COLOR)
+        apply_window_icon(self.window)
         self.window.minsize(680, 480)
         self._setup_styles()
         self._build_ui()
@@ -232,7 +234,14 @@ class SettingsWindow:
             self._on_edit()
 
     def _on_add(self):
-        ActionDialog(self.window, self.config, on_save=self._on_action_saved)
+        selected_category = self._get_selected_category_node()
+        selected_key = selected_category.key if selected_category else None
+        ActionDialog(
+            self.window,
+            self.config,
+            initial_parent_key=selected_key,
+            on_save=lambda: self._on_action_saved(selected_key),
+        )
 
     def _find_selected_action(self):
         selected = self.tree.selection()
@@ -262,8 +271,8 @@ class SettingsWindow:
         self._refresh_list()
         self._notify_config_changed()
 
-    def _on_action_saved(self):
-        self._refresh_list()
+    def _on_action_saved(self, selected_key=None):
+        self._refresh_list(selected_key=selected_key)
         self._notify_config_changed()
 
     def _on_category_saved(self, key=None):
@@ -279,15 +288,17 @@ class ActionDialog:
     BTN_SAVE = "#a6e3a1"
     BTN_CANCEL = "#45475a"
 
-    def __init__(self, parent, config_manager, edit_data=None, on_save=None):
+    def __init__(self, parent, config_manager, edit_data=None, initial_parent_key=None, on_save=None):
         self.config = config_manager
         self.edit_data = edit_data
+        self.initial_parent_key = initial_parent_key
         self.on_save = on_save
         self.param_entries = {}
         self.dialog = tk.Toplevel(parent)
         self.dialog.title("アクション追加" if not edit_data else "アクション編集")
         self.dialog.geometry("420x400")
         self.dialog.configure(bg=self.BG_COLOR)
+        apply_window_icon(self.dialog)
         self.dialog.transient(parent)
         self.dialog.grab_set()
         self.dialog.resizable(False, False)
@@ -314,9 +325,14 @@ class ActionDialog:
         self.group_var = tk.StringVar(value=group_options[0])
         group_combo = ttk.Combobox(main, textvariable=self.group_var, values=group_options, state="readonly", font=font)
         group_combo.pack(fill=tk.X, pady=(0, 12))
+        initial_group_key = None
         if self.edit_data and self.edit_data.get("parent_key"):
+            initial_group_key = self.edit_data["parent_key"]
+        elif self.initial_parent_key:
+            initial_group_key = self.initial_parent_key
+        if initial_group_key:
             for i, gk in enumerate(self.group_keys):
-                if gk == self.edit_data["parent_key"]:
+                if gk == initial_group_key:
                     group_combo.current(i)
                     break
 
@@ -430,6 +446,7 @@ class CategoryDialog:
         self.dialog.title("カテゴリ追加" if not edit_data else "カテゴリ編集")
         self.dialog.geometry("360x220")
         self.dialog.configure(bg=self.BG_COLOR)
+        apply_window_icon(self.dialog)
         self.dialog.transient(parent)
         self.dialog.grab_set()
         self.dialog.resizable(False, False)

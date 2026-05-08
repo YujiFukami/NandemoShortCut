@@ -5,7 +5,7 @@ main_analysis = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[('NandemoShortcut.ico', '.')],
     hiddenimports=['comtypes', 'comtypes.client'],
     hookspath=[],
     hooksconfig={},
@@ -35,13 +35,14 @@ main_exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon='NandemoShortcut.ico',
 )
 
 launcher_analysis = Analysis(
     ['launcher.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[('NandemoShortcut.ico', '.')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -71,4 +72,5 @@ launcher_exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon='NandemoShortcut.ico',
 )

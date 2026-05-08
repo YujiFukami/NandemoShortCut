@@ -11,6 +11,9 @@ Windows で常駐し、ランチャーEXEやシステムトレイからショー
 
 開発者ホームページ: https://www.softex-celware.com/
 
+解説ブログ:
+https://www.softex-celware.com/post/nandemo-shortcut-windows-launcher
+
 ## 主な機能
 
 - `NandemoShortcutLauncher.exe` またはトレイメニューからメイン画面を表示
@@ -38,6 +41,18 @@ Windows で常駐し、ランチャーEXEやシステムトレイからショー
 
 初回起動時に Windows SmartScreen やウイルス対策ソフトの警告が表示される場合があります。
 
+## タスクバーから素早く呼び出す
+
+`NandemoShortcutLauncher.exe` をWindowsのタスクバーにピン留めしておくと、`Windowsキー + 数字キー` でショートカット画面を呼び出せます。
+
+例:
+
+- タスクバーの左から1番目に登録: `Windows + 1`
+- タスクバーの左から2番目に登録: `Windows + 2`
+
+本体の `NandemoShortcut.exe` は常駐用、`NandemoShortcutLauncher.exe` は呼び出し用として使う想定です。
+ランチャーをタスクバーに置いておくと、作業中の画面を切り替えずにショートカット一覧を開けます。
+
 ## 初期ショートカット
 
 - `D`: 今日の日付を `YYYYMMDD` 形式でコピー
@@ -46,6 +61,7 @@ Windows で常駐し、ランチャーEXEやシステムトレイからショー
 - `O -> O`: `オリジナル` フォルダを作成
 - `U -> G`: Googleを開く
 - `U -> M`: Gmailを開く
+- `U -> B`: 解説ブログを開く
 
 ## 設定画面
 
@@ -53,6 +69,7 @@ Windows で常駐し、ランチャーEXEやシステムトレイからショー
 - メイン画面表示中に `S` キー、または `設定` ボタンから開けます
 - アクションの追加、編集、削除とカテゴリの追加、編集、削除ができます
 - 設定内容は `config.json` に保存されます
+- 左側でカテゴリを選んだ状態でアクションを追加すると、追加画面のカテゴリ欄にそのカテゴリが最初から選択されます
 
 ## 設定ファイル
 
@@ -99,7 +116,7 @@ python -m PyInstaller NandemoShortcut.spec --noconfirm
 - `dist/NandemoShortcut.exe`
 - `dist/NandemoShortcutLauncher.exe`
 
-配布ZIPには、上記2つのEXEに加えて、公開用 `config.json`、README、ライセンス表記を同梱してください。
+配布ZIPには、上記2つのEXEに加えて、公開用 `config.json`、README、ライセンス表記、必要に応じて `NandemoShortcut.ico` を同梱してください。
 
 ## リポジトリに含めないもの
 
