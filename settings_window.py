@@ -150,8 +150,8 @@ class SettingsWindow:
 
         config_btn_row = tk.Frame(btn_frame, bg=self.BG_COLOR)
         config_btn_row.pack(fill=tk.X, pady=(8, 0))
-        self._make_button(config_btn_row, "読み込み", self._import_config, bg=self.BTN_BG, fg=self.TEXT_COLOR, font=btn_font).pack(side=tk.LEFT, padx=(0, 8))
-        self._make_button(config_btn_row, "書き出し", self._export_config, bg=self.BTN_BG, fg=self.TEXT_COLOR, font=btn_font).pack(side=tk.LEFT, padx=(0, 8))
+        self._make_button(config_btn_row, "設定読み込み", self._import_config, bg=self.BTN_BG, fg=self.TEXT_COLOR, font=btn_font).pack(side=tk.LEFT, padx=(0, 8))
+        self._make_button(config_btn_row, "設定書き出し", self._export_config, bg=self.BTN_BG, fg=self.TEXT_COLOR, font=btn_font).pack(side=tk.LEFT, padx=(0, 8))
         self._make_button(config_btn_row, "設定フォルダ", self._open_config_folder, bg=self.BTN_BG, fg=self.TEXT_COLOR, font=btn_font).pack(side=tk.LEFT)
 
         status_frame = tk.Frame(self.window, bg=self.BG_SECONDARY, pady=6)
