@@ -14,6 +14,9 @@ Windows で常駐し、ランチャーEXEやシステムトレイからショー
 解説ブログ:
 https://www.softex-celware.com/post/nandemo-shortcut-windows-launcher
 
+紹介・ダウンロードページ:
+https://yujifukami.github.io/NandemoShortCut/
+
 現在のバージョン: `v1.0.1`
 
 ## 主な機能

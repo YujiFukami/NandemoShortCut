@@ -1,0 +1,50 @@
+name: Build Release ZIP
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pyinstaller
+
+      - name: Build executables
+        run: python -m PyInstaller NandemoShortcut.spec --noconfirm
+
+      - name: Prepare release folder
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}"
+          $releaseDir = "NandemoShortcut-$version"
+          New-Item -ItemType Directory -Path $releaseDir -Force | Out-Null
+          Copy-Item "dist\NandemoShortcut.exe" "$releaseDir\NandemoShortcut.exe"
+          Copy-Item "dist\NandemoShortcutLauncher.exe" "$releaseDir\NandemoShortcutLauncher.exe"
+          Copy-Item "NandemoShortcut.ico" "$releaseDir\NandemoShortcut.ico"
+          Copy-Item "config.json" "$releaseDir\config.json"
+          Copy-Item "config.json" "$releaseDir\config.sample.json"
+          Copy-Item "LICENSE" "$releaseDir\LICENSE.txt"
+          Copy-Item "THIRD_PARTY_NOTICES.md" "$releaseDir\THIRD_PARTY_NOTICES.txt"
+          Copy-Item "README.md" "$releaseDir\README.txt"
+          Compress-Archive -Path "$releaseDir\*" -DestinationPath "NandemoShortcut-$version.zip" -Force
+
+      - name: Upload GitHub Release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: NandemoShortcut-${{ github.ref_name }}.zip
+          generate_release_notes: true
