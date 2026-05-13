@@ -41,10 +41,10 @@ class SettingsWindow:
 
         self.window = tk.Toplevel(self.root)
         self.window.title("なんでもショートカット - 設定")
-        self.window.geometry("760x560")
+        self.window.geometry("820x600")
         self.window.configure(bg=self.BG_COLOR)
         apply_window_icon(self.window)
-        self.window.minsize(680, 480)
+        self.window.minsize(720, 520)
         self._setup_styles()
         self._build_ui()
         self._refresh_list()
@@ -118,7 +118,7 @@ class SettingsWindow:
         category_btn_font = tkfont.Font(family="Segoe UI", size=9, weight="bold")
         self._make_button(category_btn_frame, "＋ 追加", self._on_add_category, bg=self.ACCENT_COLOR, fg="#1e1e2e", font=category_btn_font).pack(fill=tk.X, pady=(0, 6))
         self._make_button(category_btn_frame, "✏ 編集", self._on_edit_category, bg=self.BTN_BG, fg=self.TEXT_COLOR, font=category_btn_font).pack(fill=tk.X, pady=(0, 6))
-        self._make_button(category_btn_frame, "🗑 削除", self._on_delete_category, bg=self.BTN_DEL, fg=self.BTN_DEL_FG, font=category_btn_font).pack(fill=tk.X)
+        self._make_button(category_btn_frame, "🗑 カテゴリ削除", self._on_delete_category, bg=self.BTN_DEL, fg=self.BTN_DEL_FG, font=category_btn_font).pack(fill=tk.X)
 
         right_frame = tk.Frame(content, bg=self.BG_COLOR)
         right_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
@@ -141,12 +141,18 @@ class SettingsWindow:
 
         btn_frame = tk.Frame(right_frame, bg=self.BG_COLOR, pady=10)
         btn_frame.pack(fill=tk.X)
-        self._make_button(btn_frame, "＋ 追加", self._on_add, bg=self.BTN_ADD, fg=self.BTN_ADD_FG, font=btn_font).pack(side=tk.LEFT, padx=(0, 8))
-        self._make_button(btn_frame, "✏ 編集", self._on_edit, bg=self.BTN_BG, fg=self.TEXT_COLOR, font=btn_font).pack(side=tk.LEFT, padx=(0, 8))
-        self._make_button(btn_frame, "🗑 削除", self._on_delete, bg=self.BTN_DEL, fg=self.BTN_DEL_FG, font=btn_font).pack(side=tk.LEFT)
-        self._make_button(btn_frame, "設定フォルダ", self._open_config_folder, bg=self.BTN_BG, fg=self.TEXT_COLOR, font=btn_font).pack(side=tk.RIGHT)
-        self._make_button(btn_frame, "書き出し", self._export_config, bg=self.BTN_BG, fg=self.TEXT_COLOR, font=btn_font).pack(side=tk.RIGHT, padx=(0, 8))
-        self._make_button(btn_frame, "読み込み", self._import_config, bg=self.BTN_BG, fg=self.TEXT_COLOR, font=btn_font).pack(side=tk.RIGHT, padx=(0, 8))
+
+        action_btn_row = tk.Frame(btn_frame, bg=self.BG_COLOR)
+        action_btn_row.pack(fill=tk.X)
+        self._make_button(action_btn_row, "＋ アクション追加", self._on_add, bg=self.BTN_ADD, fg=self.BTN_ADD_FG, font=btn_font).pack(side=tk.LEFT, padx=(0, 8))
+        self._make_button(action_btn_row, "✏ アクション編集", self._on_edit, bg=self.BTN_BG, fg=self.TEXT_COLOR, font=btn_font).pack(side=tk.LEFT, padx=(0, 8))
+        self._make_button(action_btn_row, "🗑 アクション削除", self._on_delete, bg=self.BTN_DEL, fg=self.BTN_DEL_FG, font=btn_font).pack(side=tk.LEFT)
+
+        config_btn_row = tk.Frame(btn_frame, bg=self.BG_COLOR)
+        config_btn_row.pack(fill=tk.X, pady=(8, 0))
+        self._make_button(config_btn_row, "読み込み", self._import_config, bg=self.BTN_BG, fg=self.TEXT_COLOR, font=btn_font).pack(side=tk.LEFT, padx=(0, 8))
+        self._make_button(config_btn_row, "書き出し", self._export_config, bg=self.BTN_BG, fg=self.TEXT_COLOR, font=btn_font).pack(side=tk.LEFT, padx=(0, 8))
+        self._make_button(config_btn_row, "設定フォルダ", self._open_config_folder, bg=self.BTN_BG, fg=self.TEXT_COLOR, font=btn_font).pack(side=tk.LEFT)
 
         status_frame = tk.Frame(self.window, bg=self.BG_SECONDARY, pady=6)
         status_frame.pack(fill=tk.X)
@@ -376,16 +382,26 @@ class ActionDialog:
         main.pack(fill=tk.BOTH, expand=True)
 
         tk.Label(main, text="カテゴリ:", font=label_font, fg=self.TEXT_COLOR, bg=self.BG_COLOR).pack(anchor="w", pady=(0, 4))
-        group_options = ["（直接実行・新規グループ）"]
-        self.group_keys = [None]
+        group_options = []
+        self.group_keys = []
         for node in self.config.get_root_nodes():
             if node.is_group:
                 group_options.append(f"{node.label} ({node.key})")
                 self.group_keys.append(node.key)
         self.group_options = group_options
-        self.group_var = tk.StringVar(value=group_options[0])
+        self.group_var = tk.StringVar(value=group_options[0] if group_options else "")
         group_combo = ttk.Combobox(main, textvariable=self.group_var, values=group_options, state="readonly", font=font)
         group_combo.pack(fill=tk.X, pady=(0, 12))
+        if not group_options:
+            tk.Label(
+                main,
+                text="先にカテゴリを追加してください。アクションは必ずカテゴリ内に作成します。",
+                font=label_font,
+                fg="#f9e2af",
+                bg=self.BG_COLOR,
+                wraplength=360,
+                justify=tk.LEFT,
+            ).pack(anchor="w", pady=(0, 12))
         initial_group_key = None
         if self.edit_data and self.edit_data.get("parent_key"):
             initial_group_key = self.edit_data["parent_key"]
@@ -477,7 +493,10 @@ class ActionDialog:
             group_idx = self.group_options.index(self.group_var.get())
         except ValueError:
             group_idx = 0
-        parent_key = self.group_keys[group_idx] if group_idx > 0 else None
+        parent_key = self.group_keys[group_idx] if 0 <= group_idx < len(self.group_keys) else None
+        if not parent_key:
+            messagebox.showwarning("入力エラー", "カテゴリを選択してください。アクションは必ずカテゴリ内に作成します。", parent=self.dialog)
+            return
         try:
             if self.edit_data:
                 self.config.update_action(self.edit_data["child_key"], self.edit_data.get("parent_key"), key, label, action_type, params, parent_key)

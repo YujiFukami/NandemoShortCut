@@ -185,38 +185,39 @@ class OverlayWindow:
         footer_frame = tk.Frame(main_frame, bg=self.BG_COLOR, pady=8)
         footer_frame.pack(fill=tk.X)
 
+        action_row = tk.Frame(footer_frame, bg=self.BG_COLOR)
+        action_row.pack(fill=tk.X, padx=16)
+
         esc_text = "ESC  戻る" if self.current_group else "ESC  キャンセル"
-        footer_top = tk.Frame(footer_frame, bg=self.BG_COLOR)
-        footer_top.pack(fill=tk.X, padx=16)
-        tk.Label(
-            footer_top, text=esc_text, font=sub_font,
-            fg="#6c7086", bg=self.BG_COLOR
+        tk.Button(
+            action_row,
+            text=esc_text,
+            command=lambda: self._on_escape(None),
+            bg=self.BG_HEADER,
+            fg=self.TEXT_COLOR,
+            relief="flat",
+            padx=10,
+            pady=3,
+            cursor="hand2",
         ).pack(side=tk.LEFT)
-        tk.Label(
-            footer_top, text=f"v{APP_VERSION}", font=sub_font,
-            fg="#6c7086", bg=self.BG_COLOR
-        ).pack(side=tk.RIGHT)
 
         if not self.current_group:
-            action_row = tk.Frame(footer_frame, bg=self.BG_COLOR)
-            action_row.pack(fill=tk.X, padx=16, pady=(8, 0))
-
-            tk.Label(
-                action_row, text="S  設定を開く", font=sub_font,
-                fg=self.ARROW_COLOR, bg=self.BG_COLOR
-            ).pack(side=tk.LEFT)
-
             tk.Button(
                 action_row,
-                text="設定",
+                text="S  設定を開く",
                 command=self._open_settings,
                 bg=self.BG_HEADER,
                 fg=self.TEXT_COLOR,
                 relief="flat",
-                padx=12,
+                padx=10,
                 pady=3,
                 cursor="hand2",
             ).pack(side=tk.RIGHT)
+
+        tk.Label(
+            action_row, text=f"v{APP_VERSION}", font=sub_font,
+            fg="#6c7086", bg=self.BG_COLOR
+        ).pack(side=tk.RIGHT, padx=(0, 12))
 
         # ウィンドウサイズを内容に合わせて調整
         self.window.update_idletasks()
