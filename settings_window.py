@@ -41,10 +41,10 @@ class SettingsWindow:
 
         self.window = tk.Toplevel(self.root)
         self.window.title("なんでもショートカット - 設定")
-        self.window.geometry("820x600")
+        self.window.geometry("960x640")
         self.window.configure(bg=self.BG_COLOR)
         apply_window_icon(self.window)
-        self.window.minsize(720, 520)
+        self.window.minsize(820, 560)
         self._setup_styles()
         self._build_ui()
         self._refresh_list()
@@ -125,18 +125,24 @@ class SettingsWindow:
         tk.Label(right_frame, text="アクション一覧", font=main_font, fg=self.ACCENT_COLOR, bg=self.BG_COLOR, anchor="w").pack(fill=tk.X, pady=(0, 8))
         tree_frame = tk.Frame(right_frame, bg=self.BG_COLOR)
         tree_frame.pack(fill=tk.BOTH, expand=True)
-        columns = ("key", "label", "type")
+        columns = ("key", "label", "type", "detail")
         self.tree = ttk.Treeview(tree_frame, columns=columns, show="headings", style="Dark.Treeview", selectmode="browse")
         self.tree.heading("key", text="キー")
         self.tree.heading("label", text="アクション名")
         self.tree.heading("type", text="タイプ")
-        self.tree.column("key", width=80, minwidth=60)
-        self.tree.column("label", width=240, minwidth=150)
-        self.tree.column("type", width=140, minwidth=80)
+        self.tree.heading("detail", text="内容")
+        self.tree.column("key", width=90, minwidth=60, stretch=False)
+        self.tree.column("label", width=220, minwidth=150)
+        self.tree.column("type", width=130, minwidth=90, stretch=False)
+        self.tree.column("detail", width=360, minwidth=160)
         scrollbar = ttk.Scrollbar(tree_frame, orient=tk.VERTICAL, command=self.tree.yview)
-        self.tree.configure(yscrollcommand=scrollbar.set)
-        self.tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        x_scrollbar = ttk.Scrollbar(tree_frame, orient=tk.HORIZONTAL, command=self.tree.xview)
+        self.tree.configure(yscrollcommand=scrollbar.set, xscrollcommand=x_scrollbar.set)
+        self.tree.grid(row=0, column=0, sticky="nsew")
+        scrollbar.grid(row=0, column=1, sticky="ns")
+        x_scrollbar.grid(row=1, column=0, sticky="ew")
+        tree_frame.grid_rowconfigure(0, weight=1)
+        tree_frame.grid_columnconfigure(0, weight=1)
         self.tree.bind("<Double-1>", self._on_double_click)
 
         btn_frame = tk.Frame(right_frame, bg=self.BG_COLOR, pady=10)
@@ -184,7 +190,41 @@ class SettingsWindow:
         for action in self.config.get_all_actions_flat():
             if filter_key and action.get("parent_key") != filter_key:
                 continue
-            self.tree.insert("", tk.END, values=(action["key_display"], action["label"], type_names.get(action["type"], action["type"])))
+            self.tree.insert(
+                "",
+                tk.END,
+                values=(
+                    action["key_display"],
+                    action["label"],
+                    type_names.get(action["type"], action["type"]),
+                    self._format_action_detail(action),
+                ),
+            )
+
+    def _format_action_detail(self, action):
+        params = action.get("params") or {}
+        action_type = action.get("type")
+        detail_keys = {
+            "clipboard_text": "text",
+            "type_text": "text",
+            "open_url": "url",
+            "open_path": "path",
+            "clipboard_file": "path",
+            "create_folder": "folderName",
+            "clipboard_date": "format",
+            "run_command": "command",
+        }
+        detail = params.get(detail_keys.get(action_type, ""), "")
+        if not detail and params:
+            detail = " / ".join(str(value) for value in params.values())
+        detail = str(detail).replace("\r", " ").replace("\n", " ")
+        return self._ellipsize(detail, 120)
+
+    @staticmethod
+    def _ellipsize(text, max_length):
+        if len(text) <= max_length:
+            return text
+        return text[: max_length - 3] + "..."
 
     def _on_category_select(self, event):
         selection = self.category_listbox.curselection()
@@ -205,7 +245,17 @@ class SettingsWindow:
             return
         self.tree.delete(*self.tree.get_children())
         type_names = ActionExecutor.get_action_types()
-        self.tree.insert("", tk.END, values=(node.key, node.label, type_names.get(node.action_type, node.action_type)))
+        action = {
+            "key_display": node.key,
+            "label": node.label,
+            "type": node.action_type,
+            "params": node.params,
+        }
+        self.tree.insert(
+            "",
+            tk.END,
+            values=(node.key, node.label, type_names.get(node.action_type, node.action_type), self._format_action_detail(action)),
+        )
 
     def _on_add_category(self):
         CategoryDialog(self.window, self.config, on_save=self._on_action_saved)
@@ -363,16 +413,17 @@ class ActionDialog:
         self.param_entries = {}
         self.dialog = tk.Toplevel(parent)
         self.dialog.title("アクション追加" if not edit_data else "アクション編集")
-        self.dialog.geometry("420x400")
+        self.dialog.geometry("520x520")
         self.dialog.configure(bg=self.BG_COLOR)
         apply_window_icon(self.dialog)
         self.dialog.transient(parent)
         self.dialog.grab_set()
-        self.dialog.resizable(False, False)
+        self.dialog.minsize(460, 420)
+        self.dialog.resizable(True, True)
         self._build_ui()
         self.dialog.update_idletasks()
-        x = parent.winfo_x() + (parent.winfo_width() - 420) // 2
-        y = parent.winfo_y() + (parent.winfo_height() - 400) // 2
+        x = parent.winfo_x() + (parent.winfo_width() - 520) // 2
+        y = parent.winfo_y() + (parent.winfo_height() - 520) // 2
         self.dialog.geometry(f"+{x}+{y}")
 
     def _build_ui(self):
@@ -443,6 +494,7 @@ class ActionDialog:
         btn_frame = tk.Frame(main, bg=self.BG_COLOR, pady=8)
         btn_frame.pack(fill=tk.X)
         btn_font = tkfont.Font(family="Segoe UI", size=10, weight="bold")
+        ttk.Sizegrip(btn_frame).pack(side=tk.LEFT, anchor="sw")
         tk.Button(btn_frame, text="保存", command=self._on_save, bg=self.BTN_SAVE, fg="#1e1e2e", font=btn_font, relief="flat", padx=20, pady=4, cursor="hand2").pack(side=tk.RIGHT, padx=(8, 0))
         tk.Button(btn_frame, text="キャンセル", command=self.dialog.destroy, bg=self.BTN_CANCEL, fg=self.TEXT_COLOR, font=btn_font, relief="flat", padx=20, pady=4, cursor="hand2").pack(side=tk.RIGHT)
 
@@ -462,20 +514,54 @@ class ActionDialog:
         self.param_entries = {}
         fields = ActionExecutor.get_param_fields(self._get_selected_type_key())
         font = tkfont.Font(family="Segoe UI", size=10)
+        action_type = self._get_selected_type_key()
         for field in fields:
             tk.Label(self.param_frame, text=f"{field['label']}:", font=font, fg=self.TEXT_COLOR, bg=self.BG_COLOR).pack(anchor="w", pady=(0, 4))
             row = tk.Frame(self.param_frame, bg=self.BG_COLOR)
-            row.pack(fill=tk.X, pady=(0, 8))
-            entry = tk.Entry(row, bg=self.BG_INPUT, fg=self.TEXT_COLOR, font=font, insertbackground=self.TEXT_COLOR, borderwidth=0, highlightthickness=1, highlightcolor=self.ACCENT_COLOR)
-            entry.pack(side=tk.LEFT, fill=tk.X, expand=True, ipady=4)
+            fill = tk.BOTH if action_type == "clipboard_text" and field["name"] == "text" else tk.X
+            expand = action_type == "clipboard_text" and field["name"] == "text"
+            row.pack(fill=fill, expand=expand, pady=(0, 8))
             default = field.get("default", "")
             if self.edit_data and field["name"] in self.edit_data.get("params", {}):
                 default = self.edit_data["params"][field["name"]]
+
+            if action_type == "clipboard_text" and field["name"] == "text":
+                text_frame = tk.Frame(row, bg=self.BG_COLOR)
+                text_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+                entry = tk.Text(
+                    text_frame,
+                    bg=self.BG_INPUT,
+                    fg=self.TEXT_COLOR,
+                    font=font,
+                    insertbackground=self.TEXT_COLOR,
+                    borderwidth=0,
+                    highlightthickness=1,
+                    highlightcolor=self.ACCENT_COLOR,
+                    wrap=tk.WORD,
+                    height=7,
+                    undo=True,
+                )
+                text_scrollbar = ttk.Scrollbar(text_frame, orient=tk.VERTICAL, command=entry.yview)
+                entry.configure(yscrollcommand=text_scrollbar.set)
+                entry.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+                text_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+                if default:
+                    entry.insert("1.0", default)
+                self.param_entries[field["name"]] = entry
+                continue
+
+            entry = tk.Entry(row, bg=self.BG_INPUT, fg=self.TEXT_COLOR, font=font, insertbackground=self.TEXT_COLOR, borderwidth=0, highlightthickness=1, highlightcolor=self.ACCENT_COLOR)
+            entry.pack(side=tk.LEFT, fill=tk.X, expand=True, ipady=4)
             if default:
                 entry.insert(0, default)
             self.param_entries[field["name"]] = entry
             if field.get("type") == "file":
                 tk.Button(row, text="参照", command=lambda name=field["name"]: self._browse_file(name), bg=self.BTN_CANCEL, fg=self.TEXT_COLOR, font=font, relief="flat", padx=12, cursor="hand2").pack(side=tk.LEFT, padx=(8, 0))
+
+    def _get_param_value(self, widget):
+        if isinstance(widget, tk.Text):
+            return widget.get("1.0", "end-1c").strip()
+        return widget.get().strip()
 
     def _browse_file(self, field_name):
         selected = filedialog.askopenfilename(parent=self.dialog, title="ファイルを選択")
@@ -488,7 +574,12 @@ class ActionDialog:
         key = self.key_entry.get().strip().upper()
         label = self.label_entry.get().strip()
         action_type = self._get_selected_type_key()
-        params = {name: entry.get().strip() for name, entry in self.param_entries.items() if entry.get().strip()}
+        params = {
+            name: value
+            for name, entry in self.param_entries.items()
+            for value in [self._get_param_value(entry)]
+            if value
+        }
         try:
             group_idx = self.group_options.index(self.group_var.get())
         except ValueError:
