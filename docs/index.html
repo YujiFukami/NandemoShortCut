@@ -102,6 +102,12 @@
       margin-top: 30px;
     }
 
+    .release-note {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
     .button {
       display: inline-flex;
       align-items: center;
@@ -200,6 +206,32 @@
       color: var(--muted);
     }
 
+    .version-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    .version-table th,
+    .version-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .version-table th {
+      width: 170px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .version-table tr:last-child th,
+    .version-table tr:last-child td {
+      border-bottom: 0;
+    }
+
     .steps {
       margin: 0;
       padding-left: 22px;
@@ -252,6 +284,7 @@
             <a class="button" href="https://github.com/YujiFukami/NandemoShortCut/releases/latest">最新リリース</a>
             <a class="button" href="https://www.softex-celware.com/post/nandemo-shortcut-windows-launcher">使い方記事</a>
           </div>
+          <p class="release-note">現在の配布版は v1.0.2 です。設定画面の内容列表示と、テキストコピーの複数行編集に対応しています。</p>
         </div>
 
         <div class="mock" aria-label="ランチャー画面のイメージ">
@@ -296,6 +329,32 @@
           <li><code>NandemoShortcutLauncher.exe</code> をタスクバーにピン留めします。</li>
           <li>必要に応じて設定画面からカテゴリとアクションを編集します。</li>
         </ol>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-inner">
+        <h2>バージョン情報</h2>
+        <table class="version-table">
+          <tbody>
+            <tr>
+              <th>現在の配布版</th>
+              <td>v1.0.2</td>
+            </tr>
+            <tr>
+              <th>主な更新内容</th>
+              <td>アクション一覧に内容列を追加し、テキストコピーの内容を複数行で編集できるようにしました。</td>
+            </tr>
+            <tr>
+              <th>配布ファイル</th>
+              <td><a href="https://github.com/YujiFukami/NandemoShortCut/releases/download/v1.0.2/NandemoShortcut-v1.0.2.zip">NandemoShortcut-v1.0.2.zip</a></td>
+            </tr>
+            <tr>
+              <th>リリース履歴</th>
+              <td><a href="https://github.com/YujiFukami/NandemoShortCut/releases">GitHub Releases</a></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </section>
 
