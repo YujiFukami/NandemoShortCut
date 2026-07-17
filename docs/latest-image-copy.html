@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>最新画像コピーの使い方 - なんでもショートカット v1.0.3</title>
+  <meta name="description" content="なんでもショートカット v1.0.3で追加された、指定フォルダ内の最新画像をコピーして任意のフォルダへ貼り付ける機能の設定方法と実行例です。">
+  <link rel="icon" href="./favicon.ico">
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #171724;
+      --panel: #24243a;
+      --panel-2: #30304b;
+      --text: #eef2ff;
+      --muted: #b8bdd8;
+      --line: #474765;
+      --accent: #8bb8ff;
+      --accent-2: #9de7a1;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Yu Gothic UI", "Meiryo", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.75;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .section-inner {
+      width: min(1120px, calc(100% - 40px));
+      margin: 0 auto;
+    }
+
+    header {
+      border-bottom: 1px solid var(--line);
+      background: #202033;
+    }
+
+    .hero {
+      padding: 48px 0 38px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .brand img {
+      width: 42px;
+      height: 42px;
+    }
+
+    .version {
+      display: inline-flex;
+      align-items: center;
+      height: 28px;
+      padding: 0 10px;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(31px, 5vw, 50px);
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    .lead {
+      max-width: 820px;
+      margin: 18px 0 0;
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0 18px;
+      border: 1px solid var(--line);
+      background: var(--panel-2);
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .button.primary {
+      background: var(--accent-2);
+      color: #11131d;
+      border-color: var(--accent-2);
+    }
+
+    section {
+      padding: 42px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    h2 {
+      margin: 0 0 16px;
+      font-size: 24px;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 0 0 8px;
+      font-size: 18px;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    p + p {
+      margin-top: 10px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .item {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      padding: 18px;
+    }
+
+    .manual-image {
+      display: block;
+      width: 100%;
+      height: auto;
+      margin-top: 18px;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .steps {
+      margin: 16px 0 0;
+      padding-left: 22px;
+      color: var(--muted);
+    }
+
+    .steps li + li {
+      margin-top: 10px;
+    }
+
+    code {
+      padding: 2px 6px;
+      background: var(--panel-2);
+      color: var(--text);
+      font-family: Consolas, monospace;
+      font-size: 0.95em;
+    }
+
+    footer {
+      padding: 26px 0 34px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    @media (max-width: 800px) {
+      .hero {
+        padding-top: 34px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="section-inner hero">
+      <div class="brand">
+        <img src="./favicon.ico" alt="">
+        <span class="version">v1.0.3 詳細</span>
+      </div>
+      <h1>最新画像コピーの使い方</h1>
+      <p class="lead">指定した画像フォルダの中から更新日時が一番新しい画像ファイルを探し、そのファイルをコピー待機状態にします。エクスプローラーの任意のフォルダで <code>Ctrl+V</code> を押すと、その画像ファイルを貼り付けできます。</p>
+      <div class="actions">
+        <a class="button primary" href="https://github.com/YujiFukami/NandemoShortCut/releases/download/v1.0.3/NandemoShortcut-v1.0.3.zip">v1.0.3をダウンロード</a>
+        <a class="button" href="./index.html">ダウンロードページへ戻る</a>
+        <a class="button" href="https://www.softex-celware.com/post/nandemo-shortcut-windows-launcher">紹介記事を開く</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section>
+      <div class="section-inner">
+        <h2>この機能でできること</h2>
+        <div class="grid">
+          <div class="item">
+            <h3>最新スクリーンショットを選ぶ</h3>
+            <p>スクリーンショット保存先など、指定したフォルダ直下の画像ファイルから最新の1枚を自動で選びます。</p>
+          </div>
+          <div class="item">
+            <h3>ファイルとしてコピーする</h3>
+            <p>画像データではなく画像ファイル自体をクリップボードへコピーするため、エクスプローラーで貼り付けできます。</p>
+          </div>
+          <div class="item">
+            <h3>保存先を自由に変えられる</h3>
+            <p>貼り付け先のフォルダを開いて <code>Ctrl+V</code> を押すだけで、最新画像を複製できます。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-inner">
+        <h2>設定方法</h2>
+        <p>設定画面でアクションを追加し、タイプに「最新画像コピー」を選びます。キーとアクション名は任意で設定し、画像フォルダにはスクリーンショットが保存されるフォルダを指定してください。</p>
+        <ol class="steps">
+          <li>設定画面で「アクション追加」を押します。</li>
+          <li>キーとアクション名を入力します。</li>
+          <li>タイプから「最新画像コピー」を選択します。</li>
+          <li>画像フォルダにスクリーンショット保存先を入力するか、「参照」から選択します。</li>
+        </ol>
+        <img class="manual-image" src="./assets/latest-image-copy-setup.jpg" alt="最新画像コピー機能の設定方法">
+      </div>
+    </section>
+
+    <section>
+      <div class="section-inner">
+        <h2>実行例</h2>
+        <p>ランチャーから設定したキーを実行すると、対象フォルダ内で一番新しい画像ファイルがコピー待機状態になります。その後、貼り付けたいフォルダを開いて <code>Ctrl+V</code> を押すと画像ファイルを複製できます。</p>
+        <img class="manual-image" src="./assets/latest-image-copy-result.jpg" alt="最新画像コピー機能の実行例">
+      </div>
+    </section>
+
+    <section>
+      <div class="section-inner">
+        <h2>補足</h2>
+        <ol class="steps">
+          <li>対象は指定フォルダ直下の画像ファイルです。サブフォルダ内は検索しません。</li>
+          <li>判定にはファイルの更新日時を使います。</li>
+          <li>対応拡張子は <code>png</code>、<code>jpg</code>、<code>jpeg</code>、<code>bmp</code>、<code>gif</code>、<code>webp</code>、<code>tif</code>、<code>tiff</code>、<code>heic</code> です。</li>
+        </ol>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="section-inner">
+      <div>Developer: Softex Celware</div>
+      <div><a href="https://github.com/YujiFukami/NandemoShortCut">GitHub Repository</a></div>
+    </div>
+  </footer>
+</body>
+</html>
