@@ -210,6 +210,7 @@ class SettingsWindow:
             "open_url": "url",
             "open_path": "path",
             "clipboard_file": "path",
+            "clipboard_latest_image": "folderPath",
             "create_folder": "folderName",
             "clipboard_date": "format",
             "run_command": "command",
@@ -557,6 +558,8 @@ class ActionDialog:
             self.param_entries[field["name"]] = entry
             if field.get("type") == "file":
                 tk.Button(row, text="参照", command=lambda name=field["name"]: self._browse_file(name), bg=self.BTN_CANCEL, fg=self.TEXT_COLOR, font=font, relief="flat", padx=12, cursor="hand2").pack(side=tk.LEFT, padx=(8, 0))
+            elif field.get("type") == "folder":
+                tk.Button(row, text="参照", command=lambda name=field["name"]: self._browse_folder(name), bg=self.BTN_CANCEL, fg=self.TEXT_COLOR, font=font, relief="flat", padx=12, cursor="hand2").pack(side=tk.LEFT, padx=(8, 0))
 
     def _get_param_value(self, widget):
         if isinstance(widget, tk.Text):
@@ -565,6 +568,13 @@ class ActionDialog:
 
     def _browse_file(self, field_name):
         selected = filedialog.askopenfilename(parent=self.dialog, title="ファイルを選択")
+        if selected:
+            entry = self.param_entries.get(field_name)
+            entry.delete(0, tk.END)
+            entry.insert(0, selected)
+
+    def _browse_folder(self, field_name):
+        selected = filedialog.askdirectory(parent=self.dialog, title="フォルダを選択")
         if selected:
             entry = self.param_entries.get(field_name)
             entry.delete(0, tk.END)

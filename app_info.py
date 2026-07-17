@@ -3,7 +3,7 @@ app_info.py - アプリ共通情報
 """
 
 APP_NAME = "なんでもショートカット"
-APP_VERSION = "1.0.2"
+APP_VERSION = "1.0.3"
 
 DEVELOPER_NAME = "Softex Celware"
 DEVELOPER_URL = "https://www.softex-celware.com/"

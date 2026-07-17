@@ -17,6 +17,18 @@ from file_clipboard import copy_files_to_clipboard
 class ActionExecutor:
     """アクションを実行するクラス"""
 
+    IMAGE_EXTENSIONS = {
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".bmp",
+        ".gif",
+        ".webp",
+        ".tif",
+        ".tiff",
+        ".heic",
+    }
+
     def __init__(self):
         # アクションタイプ → 実行メソッドのマッピング
         self._handlers = {
@@ -24,6 +36,7 @@ class ActionExecutor:
             "clipboard_date": self._exec_clipboard_date,
             "clipboard_text": self._exec_clipboard_text,
             "clipboard_file": self._exec_clipboard_file,
+            "clipboard_latest_image": self._exec_clipboard_latest_image,
             "open_url": self._exec_open_url,
             "open_path": self._exec_open_path,
             "run_command": self._exec_run_command,
@@ -102,6 +115,25 @@ class ActionExecutor:
         copy_files_to_clipboard([target_path])
         return True, f"ファイルをコピー待機にしました: {os.path.basename(target_path)}"
 
+    def _exec_clipboard_latest_image(self, params):
+        """指定フォルダ内で最新更新の画像ファイルをクリップボードにコピー"""
+        folder_path = params.get("folderPath", "")
+        if not folder_path:
+            return False, "画像フォルダが指定されていません"
+
+        folder_path = os.path.abspath(os.path.expandvars(os.path.expanduser(folder_path)))
+        if not os.path.exists(folder_path):
+            return False, f"フォルダが見つかりません: {folder_path}"
+        if not os.path.isdir(folder_path):
+            return False, f"フォルダではありません: {folder_path}"
+
+        latest_image = self.find_latest_image_file(folder_path)
+        if not latest_image:
+            return False, f"画像ファイルが見つかりません: {folder_path}"
+
+        copy_files_to_clipboard([latest_image])
+        return True, f"最新画像をコピー待機にしました: {os.path.basename(latest_image)}"
+
     def _exec_open_url(self, params):
         """URLをブラウザで開く"""
         url = params.get("url", "")
@@ -163,6 +195,7 @@ class ActionExecutor:
             "clipboard_date": "日付コピー",
             "clipboard_text": "テキストコピー",
             "clipboard_file": "ファイルコピー",
+            "clipboard_latest_image": "最新画像コピー",
             "open_url": "URLを開く",
             "open_path": "ファイルを開く",
             "run_command": "コマンド実行",
@@ -185,6 +218,9 @@ class ActionExecutor:
             "clipboard_file": [
                 {"name": "path", "label": "コピーするファイル", "type": "file"},
             ],
+            "clipboard_latest_image": [
+                {"name": "folderPath", "label": "画像フォルダ", "type": "folder"},
+            ],
             "open_url": [
                 {"name": "url", "label": "URL", "type": "text"},
             ],
@@ -199,3 +235,24 @@ class ActionExecutor:
             ],
         }
         return fields.get(action_type, [])
+
+    @classmethod
+    def find_latest_image_file(cls, folder_path):
+        """フォルダ直下の画像ファイルから更新日時が最新のものを返す"""
+        latest_path = None
+        latest_mtime = None
+        with os.scandir(folder_path) as entries:
+            for entry in entries:
+                if not entry.is_file():
+                    continue
+                ext = os.path.splitext(entry.name)[1].lower()
+                if ext not in cls.IMAGE_EXTENSIONS:
+                    continue
+                try:
+                    mtime = entry.stat().st_mtime
+                except OSError:
+                    continue
+                if latest_mtime is None or mtime > latest_mtime:
+                    latest_mtime = mtime
+                    latest_path = entry.path
+        return latest_path
